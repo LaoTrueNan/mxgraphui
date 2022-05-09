@@ -1,3 +1,6 @@
+/**
+ * SFC工具栏6个组件的定义
+ */
 import mxgraph from "@/api/leonard/mxgraph";
 const {mxConstants,mxImage} = mxgraph
 /*右侧工具栏，sfc的六个元素*/
@@ -5,7 +8,7 @@ const inputIcon = '/mxgraph/images/warning.gif';
 const outputIcon = '/mxgraph/images/warning.gif';
 export let toolBarItems = [
   {
-    icon:'/mxgraph/images/step.gif',
+    icon:'/mxgraph/images/error.gif',
     title: 'step',
     width: 70,
     height: 50,
@@ -23,8 +26,25 @@ export let toolBarItems = [
     }
   },
   {
+    icon:'/mxgraph/images/point.gif',
+    title: 'action',
+    width: 70,
+    height: 15,
+    style: {
+      fillColor: '#f3c6c6', // 填充色
+      strokeColor: '#000000', // 线条颜色
+      strokeWidth: '1', // 线条粗细
+      shape: mxConstants.SHAPE_RECTANGLE, // 形状
+      align: mxConstants.ALIGN_CENTER, // 水平方向对齐方式
+      verticalAlign: mxConstants.ALIGN_BOTTOM, // 垂直方向对齐方式
+      imageAlign: mxConstants.ALIGN_CENTER, // 图形水平方向对齐方式
+      imageVerticalAlign: mxConstants.ALIGN_TOP, // 图形垂直方向对齐方式
+      image: inputIcon // 图形
+    }
+  },
+  {
     icon:'/mxgraph/images/transition.gif',
-    title: 'transition',
+    title: '开发中',
     width: 50,
     height: 50,
     style: {
@@ -41,7 +61,7 @@ export let toolBarItems = [
   },
   {
     icon:'/mxgraph/images/macro.gif',
-    title: 'macro',
+    title: '开发中',
     width: 50,
     height: 50,
     style: {
@@ -58,7 +78,7 @@ export let toolBarItems = [
   },
   {
     icon:'/mxgraph/images/branch.gif',
-    title: 'branch',
+    title: '开发中',
     width: 50,
     height: 50,
     style: {
@@ -75,7 +95,7 @@ export let toolBarItems = [
   },
   {
     icon:'/mxgraph/images/jump.gif',
-    title: 'jump',
+    title: '开发中',
     width: 50,
     height: 50,
     style: {
@@ -90,21 +110,4 @@ export let toolBarItems = [
       image: inputIcon // 图形
     }
   },
-  {
-    icon:'/mxgraph/images/action.gif',
-    title: 'action',
-    width: 70,
-    height: 15,
-    style: {
-      fillColor: '#f3c6c6', // 填充色
-      strokeColor: '#000000', // 线条颜色
-      strokeWidth: '1', // 线条粗细
-      shape: mxConstants.SHAPE_RECTANGLE, // 形状
-      align: mxConstants.ALIGN_CENTER, // 水平方向对齐方式
-      verticalAlign: mxConstants.ALIGN_BOTTOM, // 垂直方向对齐方式
-      imageAlign: mxConstants.ALIGN_CENTER, // 图形水平方向对齐方式
-      imageVerticalAlign: mxConstants.ALIGN_TOP, // 图形垂直方向对齐方式
-      image: inputIcon // 图形
-    }
-  }
-]
+];

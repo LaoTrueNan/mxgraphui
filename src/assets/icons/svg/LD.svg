@@ -1,0 +1,11 @@
+<svg width="582" height="222" xmlns="http://www.w3.org/2000/svg">
+ <!-- Created with Method Draw - http://github.com/duopixel/Method-Draw/ -->
+
+ <g>
+  <title>Layer 1</title>
+  <rect id="svg_1" height="15" width="200" y="100.75" x="0.75" stroke-width="1.5" stroke="#000" fill="#000000"/>
+  <rect id="svg_2" height="15" width="200" y="100.75" x="380.75" stroke-width="1.5" stroke="#000" fill="#000000"/>
+  <rect id="svg_3" height="220" width="15" y="0.75" x="200.75" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="#000000"/>
+  <rect id="svg_5" height="220" width="15" y="0.75" x="365.75" stroke-opacity="null" stroke-width="1.5" stroke="#000" fill="#000000"/>
+ </g>
+</svg>

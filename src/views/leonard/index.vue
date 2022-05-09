@@ -1,5 +1,8 @@
 <template>
   <div class="mygraph">
+    <div class="toolbar" ref="toolbar">
+
+    </div>
     <div class="mainwindow" ref="mainwindow">
       <div class="manager" ref="promanager">
         POU管理器
@@ -20,7 +23,7 @@
       </div>
       <div class="dragLineVer" ref="dragLineVer2"></div>
       <div class="right" ref="right">
-        <div class="toolItemBar">
+        <div class="toolItemBar" v-show="currentTab=='tb'">
           <ul>
             <li v-for="item in toolBarItems" ref="toolItem">
               <img :src="item.icon" :alt="item.title">
@@ -31,37 +34,28 @@
             </li>
           </ul>
         </div>
-        <div class="properties">
-
+        <div class="properties" v-show="currentTab=='pro'">
+          <span>这里显示组件属性</span>
         </div>
         <div class="footer">
-          <button ref="toolbarbtn" class="righttoolbarcontrol">工具栏</button>
-          <button ref="propertiesbtn" class="righttoolbarcontrol">属性</button>
+          <button ref="toolbarbtn" class="righttoolbarcontrol" @click="changeCurrentTab('tb')">工具栏</button>
+          <button ref="propertiesbtn" class="righttoolbarcontrol" @click="changeCurrentTab('pro')">属性</button>
         </div>
       </div>
     </div>
   </div>
 </template>
 <script>
-import mxgraph from '@/api/leonard/mxgraph'
-const {
-  mxGraph,
-  mxEvent,
-  mxConstants,
-  mxUtils,
-  mxRubberband,
-  mxPoint,
-  mxCodec
-  /*......*/
-} = mxgraph;
-import {toolBarItems} from "@/api/leonard/toolBarItems";
-import '@/api/leonard/testCall'
 import $ from 'jquery'
+import '@/api/leonard/testCall'
+import {toolBarItems} from "@/api/leonard/toolBarItems";
 
 export default {
   name: 'index',
   data() {
     return {
+      /*当前右侧标签*/
+      currentTab:'tb',
       programName:'newSFC',
       change: false,
       graph: null,
@@ -71,23 +65,22 @@ export default {
       transitionList: [],
       jumpList: [],
       macroList: [],
-      left: 5,
+      left: 25,
       top: 5,
       text_variables:''
     }
   },
   computed: {
-    toolBarItems: () => toolBarItems
+    toolBarItems:()=>toolBarItems
   },
   mounted() {
     this.dragVertical1();
     this.dragVertical2();
     this.dragHorizontal1();
     this.dragHorizontal2();
-    this.createMxGraph();
-    this.initMxGraph();
-    this.initToolBar();
+    this.graph =  $.initGraph(this.$refs.sfcarea);
     this.globalEventListener();
+    $.initToolBar(this.$refs.toolItem,this.graph)
     this.stPlaceHolder();
   },
   created() {
@@ -99,140 +92,20 @@ export default {
         '\n' +
         'END_VAR'
     },
-    //创建画布，左侧sfc
-    createMxGraph() {
-      this.graph = new mxGraph(this.$refs.sfcarea);
-      new mxRubberband(this.graph)
-      this.graph.foldingEnabled = false
-      this.graph.setTooltips(true)
-      // this.graph.foldingEnabled(false)
-      this.graph.convertValueToString = (cell)=>{
-        return cell.value;
-      }
-      var style = this.graph.getStylesheet().getDefaultEdgeStyle();
-      delete style['endArrow'];
-      this.graph.popupMenuHandler.autoExpand = true;
-      var _this  = this;
-      this.graph.popupMenuHandler.factoryMethod = (menu, cell, event) => {
-        if(cell){
-          if (/step[0-9]+/.test(cell.value)) {
-            menu.addItem('delete step', null, function () {
-              let outgoingEdges = _this.graph.getOutgoingEdges(cell,_this.graph.getDefaultParent());
-              let incomingEdges = _this.graph.getIncomingEdges(cell,_this.graph.getDefaultParent());
 
-              outgoingEdges.map((item)=>{
-                var target = item.target;
-                if(/action[0-9]+/.test(target.value)){
-
-                  target.removeFromParent();
-                  _this.graph.refresh(target)
-                }
-                item.removeFromParent()
-                _this.graph.refresh(item)
-              })
-              cell.removeFromParent()
-              _this.graph.refresh(cell)
-              _this.top=_this.top-(cell.getGeometry().height+20)
-            })
-          }else if(/action[0-9]+/.test(cell.value)){
-            menu.addItem('delete action', null, function () {
-              let connections = _this.graph.getConnections(cell,_this.graph.getDefaultParent());
-              connections.map((item)=>{
-                item.removeFromParent()
-                _this.graph.refresh(item)
-              })
-              cell.removeFromParent()
-              _this.graph.refresh(cell)
-            })
-          }
-        }
-      }
-    },
     /*初始化sfc画布*/
-    initMxGraph() {
-      this.graph.setCellsMovable(false)
-      this.graph.setCellsResizable(false)
-      this.graph.setAllowDanglingEdges(false)
-      this.graph.setEnterStopsCellEditing(true)
-      mxEvent.disableContextMenu(this.$refs.sfcarea)
-    },
+    // initMxGraph() {
+    //   this.graph.setCellsMovable(false)
+    //   this.graph.setCellsResizable(false)
+    //   this.graph.setAllowDanglingEdges(false)
+    //   this.graph.setEnterStopsCellEditing(true)
+    //   this.graph.htmlLabels = true
+    //   mxEvent.disableContextMenu(this.$refs.sfcarea)
+    // },
     /*初始化右侧工具栏*/
-    initToolBar() {
-      const itemArray = this.$refs.toolItem;
-      if (!(itemArray instanceof Array) || itemArray.length <= 0) {
-        return
-      }
-      itemArray.forEach((dom, domIndex) => {
-        const item = this.toolBarItems[domIndex];
-        const {width, height} = item
-        const dropHandler = (graph, evt, cell, x, y) => {
-          let target = this.graph.getCellAt(x, y);
-          //画布不为空而且没有放置到其他元素的point或者port上
-          if (target == null && this.top != 5) {
-            return
-          } else {
-            this.dragToCanvas(item, target, x, y)
-          }
-        }
-        const dragPreview = () => {
-          const elt = document.createElement('div');
-          elt.style.border = '2px dotted black'
-          elt.style.width = `${width}px`
-          elt.style.height = `${height}px`
-          return elt
-        }
-        mxUtils.makeDraggable(dom, this.graph, dropHandler, dragPreview(), 0, 0, false, true);
-      })
-    },
+
     /*右侧工具栏拖拽到sfc画布上*/
-    dragToCanvas(toolItem, target, x, y) {
-      const {width, height} = toolItem
-      const styleObj = toolItem.style;
-      const stylestr = Object.keys(styleObj).map((attr) => `${attr}=${styleObj[attr]}`).join(';');
-      mxConstants.HANDLE_FILLCOLOR = '#99ccff';
-      mxConstants.HANDLE_STROKECOLOR = '#0088cf';
-      mxConstants.VERTEX_SELECTION_COLOR = '#00a8ff';
 
-      const parent = this.graph.getDefaultParent();
-      this.graph.getModel().beginUpdate();
-      try {
-        switch (toolItem.title) {
-          case 'step':
-            let vertex = this.graph.insertVertex(parent, null, 'step' + this.stepList.length, this.left, this.top, width, height, stylestr)
-            if(target){
-              let edge = this.graph.insertEdge(parent, null, null, target, vertex, 'strokeColor=#000000')
-            }
-            this.stepList.push(vertex)
-            /*上边的连接点*/
-            let port1 = this.graph.insertVertex(vertex, null, null, 0.5, 1, 10, 10)
-            port1.geometry.offset = new mxPoint(-5, 0)
-            port1.geometry.relative = true
-            port1.setConnectable(true)
-            this.top += height + 20
-                break;
-          //动作只能放在步上
-          case 'action':
-            if (target != null && (/step[0-9]+/.test(target.value))) {
-              let action = this.graph.insertVertex(parent, null, 'action'+this.actionList.length, target.getGeometry().width + target.getGeometry().x + 30, target.getGeometry().y, width, height, stylestr);
-              let actionEdge = this.graph.insertEdge(parent, null, null, target, action, 'strokeColor=#000000');
-              this.actionList.push(action)
-            }
-            return
-          case 'branch':
-            return
-          case 'transition':
-            return
-          case 'macro':
-            return
-          case 'jump':
-            return
-        }
-        this.change = true;
-      } finally {
-        this.graph.getModel().endUpdate();
-      }
-
-    },
 
     /*拖拽垂直线*/
     dragVertical1() {
@@ -370,7 +243,7 @@ export default {
           dragLineHor2.style.background = '#C0C4CC'
           document.onmousemove = null
           document.onmouseup = null
-          dragLineHor2.releaseCapture && dragLineHor2.releaseCapture() // 当你不在需要继续获得鼠标消息就要应该调用ReleaseCapture()释放掉
+          dragLineHor2.releaseCapture && dragLineHor2.releaseCapture()
         }
         dragLineHor2.setCapture && dragLineHor2.setCapture()
         return false
@@ -390,7 +263,10 @@ export default {
       let encode = codec.encode(this.graph.getModel());
       let prettyXml = mxUtils.getPrettyXml(encode);
       this.download('/sfc/sfcdownloadxml', {prettyXml}, `1.xml`)
-    }
+    },
+    changeCurrentTab(tabName){
+      this.currentTab = tabName
+    },
   }
 }
 </script>
@@ -450,6 +326,7 @@ export default {
 .sfcarea {
   height: 45%;
   background: transparent;
+  overflow: scroll;
 }
 
 .bottom {
